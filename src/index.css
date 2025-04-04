@@ -1,0 +1,301 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 10% 3.9%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 20 4.8% 95.9%;
+    --secondary-foreground: 20 5.9% 10%;
+
+    --muted: 20 4.8% 95.9%;
+    --muted-foreground: 20 3.8% 46.1%;
+
+    --accent: 20 4.8% 95.9%;
+    --accent-foreground: 20 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 20 5.9% 10%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 20 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 20 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 20 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 20 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 20 3.7% 15.9%;
+    --muted-foreground: 20 5% 64.9%;
+
+    --accent: 20 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 20 3.7% 15.9%;
+    --input: 20 3.7% 15.9%;
+    --ring: 20 4.9% 83.9%;
+  }
+  
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 20 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 10% 3.9%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 20 4.8% 95.9%;
+    --secondary-foreground: 20 5.9% 10%;
+
+    --muted: 20 4.8% 95.9%;
+    --muted-foreground: 20 3.8% 46.1%;
+
+    --accent: 20 4.8% 95.9%;
+    --accent-foreground: 20 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+  }
+
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+
+  body {
+    @apply bg-background text-foreground overflow-hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Optima", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body.dark {
+    background: radial-gradient(circle at center, rgba(213,213,213,1) -200%, rgba(0,0,0,1) 100%) center center/cover no-repeat;
+    min-height: 100vh;
+  }
+
+  body.light {
+    background: url('https://img.freepik.com/free-vector/winter-blue-pink-gradient-background-vector_53876-117276.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  #root.dark {
+    background: radial-gradient(circle at center, rgba(213,213,213,1) -200%, rgba(0,0,0,1) 100%) center center/cover no-repeat;
+  }
+
+  #root.light {
+    background: url('https://img.freepik.com/free-vector/winter-blue-pink-gradient-background-vector_53876-117276.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-accent/30 cursor-pointer;
+  }
+  
+  .chat-bubble {
+    @apply p-4 rounded-xl my-4 max-w-[80%] relative backdrop-blur-sm;
+  }
+  
+  .user-bubble {
+    @apply chat-bubble bg-[#1D1D1F]/90 text-white ml-auto border border-[#2D2D2F] shadow-md;
+  }
+  
+  .ai-bubble {
+    @apply chat-bubble bg-[#111112]/80 mr-auto border border-[#2D2D2F] shadow-md;
+  }
+
+  .prompt-button {
+    @apply bg-[#1D1D1F] hover:bg-[#2D2D2F] text-foreground transition-colors py-2 px-4 rounded-md text-sm border border-[#2D2D2F];
+  }
+  
+  .apple-card {
+    @apply rounded-xl border border-[#2D2D2F] bg-[#1D1D1F] backdrop-blur-lg shadow-lg;
+  }
+  
+  .apple-button {
+    @apply rounded-full bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white transition-all border border-[#2D2D2F];
+  }
+}
+
+/* Markdown Styling */
+.prose {
+  @apply text-sm leading-normal;
+}
+
+.prose h1 {
+  @apply text-2xl font-bold mb-4 mt-6 text-white;
+}
+
+.prose h2 {
+  @apply text-xl font-bold mb-3 mt-5 text-white;
+}
+
+.prose h3 {
+  @apply text-lg font-bold mb-2 mt-4 text-white;
+}
+
+.prose p {
+  @apply mb-4 text-gray-200;
+}
+
+.prose ul {
+  @apply list-disc pl-6 mb-4;
+}
+
+.prose ol {
+  @apply list-decimal pl-6 mb-4;
+}
+
+.prose li {
+  @apply mb-1;
+}
+
+.prose pre {
+  @apply bg-black/30 p-4 rounded-xl overflow-auto mb-4 border border-[#2D2D2F];
+}
+
+.prose code {
+  @apply bg-black/30 px-1 py-0.5 rounded-md font-mono text-gray-200 border border-[#2D2D2F];
+}
+
+.prose blockquote {
+  @apply border-l-4 border-talentforge-400 pl-4 italic my-4 text-gray-300;
+}
+
+.prose a {
+  @apply text-talentforge-400 hover:underline;
+}
+
+/* Apple-style scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2D2D2F;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3D3D3F;
+}
+
+/* Dark mode specifics */
+.dark .prose code {
+  @apply bg-black/30;
+}
+
+.dark .prose pre {
+  @apply bg-black/30;
+}
+
+/* Light mode specifics */
+.light {
+  background-color: #FFFFFF;
+}
+
+.light .prose code {
+  @apply bg-gray-200;
+}
+
+.light .prose pre {
+  @apply bg-gray-200;
+}
+
+.light .prose {
+  @apply text-gray-800;
+}
+
+.light .prose h1,
+.light .prose h2,
+.light .prose h3 {
+  @apply text-gray-900;
+}
+
+.light .prose p {
+  @apply text-gray-700;
+}
+
+.light .apple-card {
+  @apply bg-white border-gray-200;
+}
+
+.light .apple-button {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300;
+}
+
+.light .sidebar-item {
+  @apply hover:bg-gray-100;
+}
+
+.light .chat-bubble {
+  @apply shadow-sm;
+}
+
+.light .user-bubble {
+  @apply bg-white/90 text-gray-800 border-gray-200;
+}
+
+.light .ai-bubble {
+  @apply bg-gray-50/80 border-gray-200;
+}
