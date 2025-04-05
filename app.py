@@ -28,7 +28,8 @@ CORS(app, resources={
         "origins": [
             "http://localhost:3000",
             "https://talentforge-hr-bot.onrender.com",
-            "https://talentforge-hr-frontend.onrender.com"
+            "https://talentforge-hr-frontend.onrender.com",
+            "https://talentforge-frontend.vercel.app"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
