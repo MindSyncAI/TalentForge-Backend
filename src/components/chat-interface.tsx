@@ -41,7 +41,14 @@ export function ChatInterface() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { theme } = useTheme();
 
-  const welcomeMessage = "Good evening, User";
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 2 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const welcomeMessage = `${getGreeting()}, User`;
   const promptSuggestions = ["Interview Questions", "HR Q&A"];
 
   const scrollToBottom = () => {
@@ -360,7 +367,7 @@ export function ChatInterface() {
                 showBorder={false}
                 className="text-2xl sm:text-3xl font-bold"
               >
-                Good evening, user
+                {welcomeMessage}
               </GradientText>
             </h2>
           </div>
