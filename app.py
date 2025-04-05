@@ -12,6 +12,7 @@ import pickle
 from werkzeug.exceptions import HTTPException
 import logging
 from pathlib import Path
+import shutil
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +34,20 @@ CORS(app, resources={
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+
+# Root endpoint
+@app.route('/')
+def root():
+    return jsonify({
+        'status': 'success',
+        'message': 'TalentForge HR Bot API is running',
+        'version': '1.0.0',
+        'endpoints': {
+            'health': '/api/health',
+            'ask': '/api/ask',
+            'reset': '/api/reset'
+        }
+    })
 
 # Error handler
 @app.errorhandler(Exception)
@@ -96,14 +111,39 @@ def initialize_chain():
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
 
-        logger.info("Loading FAISS vector store...")
-        vector_store = FAISS.load_local(
-            "embeddings",
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
+        # Ensure embeddings directory exists
+        embeddings_dir = Path("embeddings")
+        if not embeddings_dir.exists():
+            raise ValueError("Embeddings directory not found")
 
-        # Use Path for cross-platform compatibility
+        # Check if we need to recreate the vector store
+        try:
+            logger.info("Loading FAISS vector store...")
+            vector_store = FAISS.load_local(
+                "embeddings",
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except Exception as e:
+            logger.error(f"Error loading vector store: {str(e)}")
+            logger.info("Attempting to recreate vector store...")
+            
+            # Create a backup of the original files
+            backup_dir = Path("embeddings_backup")
+            if not backup_dir.exists():
+                shutil.copytree(embeddings_dir, backup_dir)
+            
+            # Load the documents and create new vector store
+            from langchain.document_loaders import DirectoryLoader
+            loader = DirectoryLoader("dataset", glob="**/*.txt")
+            documents = loader.load()
+            
+            vector_store = FAISS.from_documents(documents, embeddings)
+            vector_store.save_local("embeddings")
+            
+            logger.info("Successfully recreated vector store")
+
+        # Load metadata
         metadata_path = Path("embeddings") / "metadata.pkl"
         with open(metadata_path, "rb") as f:
             metadata = pickle.load(f)
@@ -122,7 +162,7 @@ def initialize_chain():
         memory = ConversationBufferMemory(
             memory_key="chat_history",
             return_messages=True,
-            max_token_limit=2000  # Limit memory size
+            max_token_limit=2000
         )
 
         system_prompt = SystemMessagePromptTemplate.from_template(
@@ -138,7 +178,7 @@ def initialize_chain():
         chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
             chain_type='stuff',
-            retriever=vector_store.as_retriever(search_kwargs={"k": 3}),  # Reduced from 5 to 3
+            retriever=vector_store.as_retriever(search_kwargs={"k": 3}),
             memory=memory,
             combine_docs_chain_kwargs={'prompt': prompt}
         )

@@ -10,4 +10,6 @@ torch==2.2.1
 transformers==4.38.2
 numpy==1.26.4
 werkzeug==3.0.1
-gunicorn==21.2.0 
+gunicorn==21.2.0
+unstructured==0.12.5
+python-magic==0.4.27 
