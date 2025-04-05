@@ -16,6 +16,7 @@ import { WeatherWidget } from './weather-widget';
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { chatApi } from "@/lib/api";
 
 interface Message {
   id: number;
@@ -40,6 +41,7 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -99,37 +101,90 @@ export function ChatInterface() {
     return text;
   };
 
-  const handleSendMessage = () => {
-    if (input.trim() === "") return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
 
-    // Add user message
-    const userMessage: Message = {
-      id: messages.length + 1,
-      content: input,
-      sender: "user",
-      timestamp: new Date(),
-    };
-    
-    setMessages([...messages, userMessage]);
+    const userMessage = input.trim();
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response after a delay
-    setTimeout(() => {
-      // Example of automatically formatting unstructured response
-      const responseText = "Sorry, there was an error processing your request. Please try again.";
-      const formattedResponse = formatUnstructuredText(responseText);
+    // Add user message to chat
+    const newUserMessage: Message = {
+      id: Date.now(),
+      content: userMessage,
+      sender: "user",
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, newUserMessage]);
+
+    try {
+      const response = await chatApi.ask(userMessage);
       
-      const aiMessage: Message = {
-        id: messages.length + 2,
-        content: formattedResponse,
-        sender: "ai",
-        timestamp: new Date(),
-      };
-      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      if (response.status === 'success' && response.data) {
+        const aiMessage: Message = {
+          id: Date.now() + 1,
+          content: response.data.answer,
+          sender: "ai",
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to get response from AI",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to communicate with the AI service",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
+
+  const handleReset = async () => {
+    try {
+      const response = await chatApi.reset();
+      if (response.status === 'success') {
+        setMessages([]);
+        toast({
+          title: "Success",
+          description: "Conversation has been reset",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to reset conversation",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Check API health on component mount
+  useEffect(() => {
+    const checkHealth = async () => {
+      const health = await chatApi.health();
+      if (health.status === 'error') {
+        toast({
+          title: "Warning",
+          description: "AI service is not available. Some features may not work.",
+          variant: "destructive",
+        });
+      }
+    };
+    checkHealth();
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
