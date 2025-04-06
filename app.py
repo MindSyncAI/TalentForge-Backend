@@ -6,6 +6,8 @@ from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_loaders import TextLoader, DirectoryLoader
 import os
 from dotenv import load_dotenv
 import pickle
@@ -13,7 +15,7 @@ import pickle
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app - remove template_folder and static_folder
+# Initialize Flask app
 app = Flask(__name__)
 
 # Configure CORS
@@ -21,34 +23,55 @@ CORS(app, origins=["https://talent-forge-hr-bot-px2r.vercel.app"],
      methods=['GET', 'POST'],
      allow_headers=['Content-Type'])
 
+def create_new_vectorstore(embeddings):
+    """Create a new vector store from documents"""
+    try:
+        # Load documents from the data directory
+        loader = DirectoryLoader(
+            "./data",  # Make sure this directory exists with your text files
+            glob="**/*.txt",
+            loader_cls=TextLoader
+        )
+        documents = loader.load()
+        
+        # Split documents into chunks
+        text_splitter = CharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
+        texts = text_splitter.split_documents(documents)
+        
+        # Create and save the FAISS index
+        vectorstore = FAISS.from_documents(texts, embeddings)
+        
+        # Save the vectorstore
+        vectorstore.save_local("embeddings")
+        
+        return vectorstore
+    except Exception as e:
+        raise Exception(f"Failed to create new vector store: {str(e)}")
+
 def initialize_chain():
     try:
         groq_api_key = os.environ.get("GROQ_API_KEY")
         if not groq_api_key:
             raise ValueError("GROQ_API_KEY environment variable is not set")
 
-        # Initialize embeddings
+        # Initialize embeddings with specific model kwargs
         embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'},
+            encode_kwargs={'device': 'cpu', 'batch_size': 32}
         )
 
-        # Load vector store
+        # Try to load existing vector store or create new one
         try:
-            vector_store = FAISS.load_local(
-                "embeddings",
-                embeddings,
-                allow_dangerous_deserialization=True
-            )
+            vector_store = FAISS.load_local("embeddings", embeddings)
+            print("Successfully loaded existing vector store")
         except Exception as e:
-            raise Exception(f"Failed to load vector store: {str(e)}")
-
-        # Load metadata
-        try:
-            with open("embeddings/metadata.pkl", "rb") as f:
-                metadata = pickle.load(f)
-            print(f"Loaded {metadata['num_documents']} documents with {metadata['num_chunks']} chunks")
-        except Exception as e:
-            raise Exception(f"Failed to load metadata: {str(e)}")
+            print(f"Failed to load existing vector store: {str(e)}")
+            print("Creating new vector store...")
+            vector_store = create_new_vectorstore(embeddings)
 
         # Initialize LLM
         llm = ChatGroq(
