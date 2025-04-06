@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from langchain.chains import ConversationalRetrievalChain
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -13,8 +13,8 @@ import pickle
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app with explicit template and static folders
-app = Flask(__name__, template_folder='templates', static_folder='static')
+# Initialize Flask app - remove template_folder and static_folder
+app = Flask(__name__)
 
 # Configure CORS
 CORS(app, origins=["https://talent-forge-hr-bot-px2r.vercel.app"], 
@@ -102,14 +102,12 @@ except Exception as e:
     conversation_chain = None
     conversation_history = []
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint for Render"""
-    return jsonify({'status': 'healthy'}), 200
-
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    return render_template('index.html')
+    return jsonify({
+        'status': 'healthy',
+        'message': 'TalentForge HR Bot API is running'
+    })
 
 @app.route('/ask', methods=['POST'])
 def ask():
@@ -167,8 +165,5 @@ def reset():
         }), 500
 
 if __name__ == '__main__':
-    # Get port from environment variable or default to 5000
     port = int(os.environ.get('PORT', 5000))
-    
-    # Run the app
     app.run(host='0.0.0.0', port=port)
